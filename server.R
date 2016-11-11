@@ -12,7 +12,7 @@ library(tidyr)
 
 library(ggplot2)
 
-load('public_data.RData')
+load('public_data.Rdata')
 
 # The palette with grey:
 
