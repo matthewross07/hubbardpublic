@@ -8,8 +8,9 @@ library(RColorBrewer)
 library(reshape2)
 library(tidyr)
 library(devtools)
+devtools::install_github("hadley/ggplot2",force=T)
+
 library(ggplot2)
-#devtools::install_github("hadley/ggplot2",force=T)
 
 load('public_data.RData')
 
