@@ -14,7 +14,8 @@ shinyUI(fluidPage(navbarPage(
            fluidRow(column(
              6,
              h5('This shiny app is currently under construction. Look at the
-                "data exploration" tab or "acid rain" tab under "data stories" to see a sample of what is to come')
+                "data exploration" tab to see a sample of what is to come. Acid rain tab 
+                currently not working because of an error that will be fixed in mid-january.')
            ),
            column(
              6,

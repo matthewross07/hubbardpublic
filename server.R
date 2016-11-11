@@ -7,8 +7,8 @@ library(lubridate)
 library(RColorBrewer)
 library(reshape2)
 library(tidyr)
-library(devtools)
-devtools::install_github("hadley/ggplot2",force=T)
+# library(devtools)
+# devtools::install_github("hadley/ggplot2",force=T)
 
 library(ggplot2)
 
