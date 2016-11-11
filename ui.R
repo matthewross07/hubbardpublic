@@ -18,7 +18,7 @@ shinyUI(fluidPage(navbarPage(
            ),
            column(
              6,
-             h6('Cool picture here')
+             h6('')
            ))),
   tabPanel('Data Stories',
     # headers, dynamic based on the number of data stories?
