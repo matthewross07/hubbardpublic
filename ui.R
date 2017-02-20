@@ -11,9 +11,7 @@ elements <- c('Ca','Mg','K','Na','Al','NH4','SO4','NO3','Cl','PO4','SiO2','H')
 shinyUI(fluidPage(navbarPage(
   'Hubbard Brook Long Term Data',
   tabPanel('Intro',
-            tabPanel('Intro',
-           fluidRow(column(
-             6
+             fluidRow(column(6,
              h3('Welcome to the Hubbard Brook Data Explorer web application!'),
              br(),
              br(),
