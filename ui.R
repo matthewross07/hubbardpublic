@@ -1,6 +1,6 @@
 # Tab layout and sidebar panels for a shiny app that helps user
 
-library(magrittr)
+
 library(shiny)
 library(xts)
 library(dygraphs)
