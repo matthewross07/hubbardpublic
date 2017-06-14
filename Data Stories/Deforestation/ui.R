@@ -41,7 +41,7 @@ shinyUI(fluidPage(
                              value = c(as.Date("1965-01-01"), as.Date("1971-01-01")))),
                mainPanel(plotlyOutput("s.plot"))
              )),
-    tabPanel("Discharge Quantities",
+    tabPanel("Discharge and Precipitation Quantities",
              sidebarLayout(
                sidebarPanel(
                  selectInput("scale.dis", label = h3("Time Scale"),
