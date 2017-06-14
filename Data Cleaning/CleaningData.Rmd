@@ -264,8 +264,8 @@ precip_stream_data %<>%
 precip_stream_data %<>% group_by(ws, water_year, source, solute) %>%
   mutate(mg_weighted_average = weighted.mean(concentration_mg, water_mm_pm)) %>%
   mutate(umol_weighted_average = weighted.mean(concentration_umol, water_mm_pm)) %>%
-  mutate(ueq_weighted_average = weighted.mean(concentration_ueq,
-  water_mm_pm))
+  mutate(ueq_weighted_average = weighted.mean(concentration_ueq, water_mm_pm)) %>%
+  mutate(flux_weighted_average = weighted.mean(flux, water_mm_pm))
 
 precip_stream_data$ws <- as.factor(precip_stream_data$ws)
 
@@ -280,9 +280,26 @@ precip_stream_data$ws <- as.factor(precip_stream_data$ws)
 #Export File
 
 precip_stream_data %>% 
-  saveRDS(file = "precip_stream_data.rds")
+  saveRDS(file = "precip_stream_data_long.rds")
 
-precip_stream_data %>% 
-  saveRDS(file = "precip_stream_data.rds")
+```
+
+
+#Wide df
+
+```{r}
+
+long <- readRDS(file = "precip_stream_data_long.rds")
+drop <- c("z", "MW")
+df <- long[, !(names(long) %in% drop)]
+fixed <- c("ws","date","water_date","water_year", "source", "water_mm_pm", "solute")
+values <- colnames(df[, !(names(df) %in% fixed)])
+
+precip_stream_data_wide <- data.table::dcast(data.table::setDT(df), ws + date + water_date + water_year + source + water_mm_pm ~ solute, value.var = values)
+
+precip_stream_data_wide %>% 
+  saveRDS(file = "precip_stream_data_wide.rds")
+
+
 ```
 
