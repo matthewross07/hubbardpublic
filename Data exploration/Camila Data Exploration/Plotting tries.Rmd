@@ -1,0 +1,175 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+
+```{r}
+
+# a <- precip_stream_data[, c("ws","date","water_date","water_year","solute","concentration_mg","source","concentration_ueq","concentration_umol","umol_weighted_average","ueq_weighted_average", "water_mm_pm")]
+# 
+# data_test_bubble <- data.table::dcast(a, ws + date + water_date + water_year + water_mm_pm + source ~ solute, value.var = c("concentration_mg", "concentration_ueq", "concentration_umol","umol_weighted_average","ueq_weighted_average")) 
+# 
+# 
+# data_test_bubble %>% 
+#   export(file = "precip_stream_bubble_data.rds")
+
+```
+
+
+```{r}
+
+library(animation)
+library(gganimate)
+
+
+data_test <- readRDS("precip_stream_data_long.rds")
+#data_test <- data_test[data_test$source == "flow",]
+#data_test <- data_test[data_test$solute == "Ca" | data_test$solute == "Na" | data_test$solute == "K",]
+#data_test <- data_test[data_test$ws == "6"|data_test$ws == "3",]
+
+levels(as.factor(data_test$solute))
+
+solute_palette <- c("Cl" = "#450003", "NO3" = "#5C0002", "SO4" = "#94090D", "SiO2" = "#D40D12", "Al" = "#16193B",  "Ca" = "#35478C",   "H" = "#4E7AC7",    "K" = "#7FB2F0",    "Mg" = "#ADD5F7",   "Na" = "#2C71C7",   "NH4" = "#1E328C" ,  "pH" = "#FFBE23",   "PO4" = "#FF1D23") 
+
+ggplot(data=data_test)+ geom_line(aes(x = water_year, y = water_mm_pm,
+color = solute)) + geom_point(aes(x = water_year, y = water_mm_pm,
+color = solute)) + scale_color_manual(values = solute_palette)
+
+```
+
+
+``` {r}
+ani.options(interval = 0.06) #animation speed, seconds per frame
+gganimate(a, title_frame = FALSE)
+
+# # 
+# # ggplot(data=data_test)+ geom_line(aes(x = water_year, y = ueq_weighted_average,
+# # color = solute))+ geom_point(aes(x = water_year, y = ueq_weighted_average,
+# # color = solute)) + facet_wrap(~source , ncol = 1)
+# 
+# ggplot(data=data_test)+ geom_line(aes(x = water_year, y = ueq_weighted_average,
+# color = ws, linetype = solute))+ geom_point(aes(x = water_year, y = ueq_weighted_average,
+# color = ws, shape = solute)) + facet_wrap(~source , ncol = 1)
+# 
+# 
+# a <- theme(plot.title=element_text(size=30, face="bold"), 
+#                   axis.text.x=element_text(size=15), 
+#                   axis.text.y=element_text(size=15),
+#                   axis.title.x=element_text(size=25),
+#                   axis.title.y=element_text(size=25))
+# 
+# my_theme <- theme_fivethirtyeight() + 
+#   theme(rect = element_rect(fill = NA), panel.grid.major = element_line(colour = "#dddddd"), text = element_text(family = "Helvetica"), legend.position = "right", legend.direction = "vertical", strip.text = element_text(hjust = 0, size = 15, face = "bold"), axis.title= element_text(NULL), axis.title.x= element_blank(), axis.title.y= element_text(hjust = 1, angle = 0)) 
+# 
+# theme_fivethirtyeight()
+# 
+# my_palette <- c("#EAB641", "#8BC057", "#19BA94","#25A6C0", "#8D85BA","#BC6487")
+# 
+# ggplot(data=data_test)+ my_theme + geom_line(aes(x = water_year, y = ueq_weighted_average,
+# color = solute, shape = ws),  size = 1)+ geom_point(aes(x = water_year, y = ueq_weighted_average,
+# color = solute, shape = ws), size = 2.5,  stroke = 0.5) + facet_wrap(~source , ncol = 1) + 
+#   labs(x = "Water Year", y = "ueq") + scale_shape_manual(values = c(16, 1)) + scale_color_manual(values = my_palette) 
+#   
+#   scale_colour_brewer(type = "qual", palette = "Paired")
+  
+
+```
+
+
+```{r}
+
+
+colnames(precip_stream_data)
+
+# precip_stream_data %>% 
+#   gather(variable, value, -(ws:solute)) %>%
+#   unite(temp, solute, variable) %>%
+#   spread(temp, value)
+
+
+
+
+
+# precip_stream_data %>% 
+#   filter(source == "flow") %>% 
+#   filter(ws == "1")
+# 
+# 
+data <- readRDS("precip_stream_data_wide.rds")
+unit_columns <-colnames(data_test_bubble[,(grep("^concentration_ueq_", colnames(data))), with = FALSE])
+basic_columns <- c("ws","date","water_date","water_year","source","water_mm_pm")
+needed_columns <- c(basic_columns,unit_columns)
+filtereddata <- data[,needed_columns, with = FALSE]
+filtereddata <- filtereddata[filtereddata$ws == "6",]
+filtereddata <- filtereddata[filtereddata$source == input$source,]
+```
+
+
+
+```{r}
+[1] "Al"   "Ca"   "Cl"   "H"    "K"    "Mg"   "Na"   "NH4"  "NO3"  "pH"   "PO4"  "SiO2" "SO4" 
+H+, Ca2+, Mg2+, Na+, and K+
+
+
+
+vector <- (grep("^concentration_ueq_", names(data_test_bubble)))
+
+
+a <- c(2,3,4)
+  
+
+
+base <- df[, !(names(df) %in% fixed)]
+  
+col_units<- colnames(data_test_bubble[,(grep("^concentration_ueq_", colnames(data_test_bubble))), with = FALSE])
+important <- c("ws","date","water_date","water_year","source","water_mm_pm")
+
+c(col_units,important)
+
+x<- colnames(a[,grep("Na", names(a)), with = FALSE])
+y<- a[,grep("Na", names(a)), with = FALSE]
+
+a<- colnames(data_test_bubble[,(grep("paste0("^", catSelect)", colnames(data_test_bubble)))])
+b<- a[(grep("(Na|Ca)", a))]
+
+data_test_bubble %<>% 
+  mutate(sum_SO4_NO3 = rowSums(.[, c("concentration_ueq_SO4", "concentration_ueq_NO3")])) %>%
+  mutate(sum_base_cat = rowSums(.[, c("concentration_ueq_H", "concentration_ueq_Ca", "concentration_ueq_Mg", "concentration_ueq_Na","concentration_ueq_K" )])) 
+
+data_test_bubble %<>% group_by(ws, water_year, source) %>%
+  mutate(sum_SO4_NO3_weighted_average = weighted.mean(sum_SO4_NO3, water_mm_pm))%>%
+  mutate(sum_base_cat_weighted_average = weighted.mean(sum_base_cat, water_mm_pm))
+
+
+data_test_bubble <- data_test_bubble[data_test_bubble$ws == "2",]
+data_test_bubble <- data_test_bubble[data_test_bubble$water_year == "1966-06-01",]
+data_test_bubble <- data_test_bubble[data_test_bubble$source == "flow",]
+
+ggplot(data=data_test_bubble) + 
+  geom_point(aes(x = sum_SO4_NO3_weighted_average, y = sum_base_cat_weighted_average, color = water_year), stroke = 2)+
+  xlim(min(0), max(200)) +
+  ylim(min(0), max(160)) + scale_color_manual(values = c("sum_base_cat_weighted_average" = "#d9edf7" , "sum_SO4_NO3_weighted_average" = "#555555"))
+
+
+gganimate(ggplot(data=data_test_bubble) + 
+  geom_point(aes(x = concentration_mg_Na, y = concentration_mg_Na, color = water_year, shape = source, size = water_mm_pm, frame= water_year), stroke = 2, alpha = 0.5)+ scale_shape_manual(values= c(1, 16)))
+
+
+
+```
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+
+```{r}
+ 
+```
+

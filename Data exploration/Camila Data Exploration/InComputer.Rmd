@@ -1,0 +1,250 @@
+---
+title: "Playing around with the data"
+output: html_notebook
+---
+
+#libraries
+```{r}
+
+library(ggplot2)
+library(plotly)
+library(tidyr)
+library(readr)
+library(lubridate)
+library(magrittr)
+library(dplyr)
+library(rio)
+library(help = gganimate)
+library(animation)
+library(ggplot2)
+library(gganimate)
+
+```
+
+
+#Import data
+```{r}
+precip <- read_csv("~/dataplus/PlayingAround/w6_precip_chem.txt")
+precip <- as_data_frame(precip)
+discharge <- filter(chem.annual.ueq)
+
+
+```
+
+
+
+#Data Cleaning for precip
+```{r}
+
+precip[precip == -3] <- NA
+precip <- unite(precip, "date", c(2, 3), sep = "-")
+precip["date"] <- apply(precip[,c("date")],2, function(x){paste0(x, '-01')})
+precip$date <- as.Date(precip$date)
+
+#from pH to H
+precip %<>% 
+  mutate(H = 10^(-pH)*1000)
+
+#Water Year
+precip %<>%
+  mutate(date2 = date %m-% months(5)) %>%
+  separate(date2, c("water.year"), sep = "-")
+
+precip["water.year"] <- apply(precip[,c("water.year")],2, function(x){paste0(x, '-06-01')})
+precip$water.year <- as.Date(precip$water.year)
+
+#Tidy - gather
+precip <- gather(precip, solute, concentration_mg, `Ca`:`H`)
+precip$solute <- as.factor(precip$solute)
+
+
+#Unit conversion
+precip <- left_join(precip, MW.data, by = "solute")
+
+precip %<>%
+        mutate(concentration_ueq = ifelse(is.na(precip$MW), concentration_mg, (((concentration_mg/1000)/MW)*(abs(z))*10^6))) %>%
+        mutate(concentration_umol = ifelse(is.na(precip$MW), concentration_mg, (((concentration_mg/1000)/MW))*10^6))
+
+precip %<>%
+  group_by(water.year,solute) %>%
+  mutate(umol_weighted_average = weighted.mean(concentration_umol, precip)) %>%
+  mutate(ueq_weighted_average = weighted.mean(concentration_ueq, precip))
+
+```
+
+
+#Data Cleaning for discharge
+
+```{r}
+#add pH
+discharge %<>% 
+  mutate(pH = -log10(H/(10^6)))
+discharge %<>% 
+  select(c(1:14, 16, 15))
+
+discharge$water.year = as.character(discharge$water.year)
+discharge["water.year"] <- apply(discharge["water.year"],2, function(x){paste0(x, '-06-01')})
+discharge$water.year <- as.Date(discharge$water.year)
+discharge <- gather(discharge, solute, concentration, `Ca`:`pH`)
+
+```
+
+
+```{r}
+#Merging both df
+
+discharge6 <- filter(discharge, ws =="6")
+precip
+bothws6 <- left_join(x = discharge6, y = precip[, c("solute", "water.year","concentration_mg", "umol_weighted_average", "ueq_weighted_average")], by = c("water.year","solute"))
+
+bothws6 %>% 
+  export(file = "bothws6.rds")
+
+
+```
+
+
+#LEPS
+
+```{r}
+leps <- read_csv("~/dataplus/PlayingAround/leps.txt")
+leps$`lep length` <- as.numeric(leps$`lep length`)
+leps$`date` <- as.Date(strptime(leps$`date`, "%m/%d/%y"))
+
+str(leps)
+str(precip)
+left_join(leps, precip, by = "date")
+
+```
+
+
+
+#Graph in page 6
+
+```{r}
+
+precip2 <- filter(precip, solute == "Ca" | solute == "Mg")
+precip3 <- filter(precip, solute == "Na")
+
+p <- ggplot() +
+  geom_line(data = precip2, aes(x= ueq_weighted_average, y= umol_weighted_average, color = solute, frame = water.year))+
+  geom_point(data = precip2, aes(x= water.year, y= umol_weighted_average, color = solute))+
+  geom_line(data = precip3, aes(x= water.year, y= (umol_weighted_average/2)))+
+  geom_point(data = precip3, aes(x= water.year, y= (umol_weighted_average/2)))+
+  scale_y_continuous(sec.axis = sec_axis(~.*5, name = expression(paste("Concentration in ", frac(paste(mu, "eq"), "L")))))+
+  labs(x = "Water Year", y = expression(paste("Concentration in ", frac(paste(mu, "mol"), "L"))))
++
+  geom_smooth(aes(x = water.year, y= umol_weighted_average, color = solute), method = "lm", color = "red", se = FALSE)
+  
+p <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent, frame = year)) +
+  geom_point() +
+  scale_x_log10()
+
+gganimate(p, convert = "gm convert")
+
+
+```
+
+
+
+# Graph in Page 7
+
+
+```{r}
+
+
+discharge2 <- filter(discharge, ws == 6 & (solute =="Ca" | solute =="Na" | solute =="Mg"))
+
+ggplot(data = discharge2) +
+  geom_smooth(aes(x= water.year, y= concentration, group = solute), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= concentration, color = solute))+
+  geom_point(aes(x= water.year, y= concentration, color = solute)) + 
+  scale_color_manual(values=c("blue", "green", "gray"))+ 
+  labs(x = "Water Year", y = expression(paste("Concentration in ", frac(paste(mu, "eq"), "L"))))+
+  ggtitle("W6 Stream Water")+
+  annotate("text", label = "Calcium", x =as.Date("1961-10-05"), y = 85, hjust = 0)+
+  annotate("text", label = "Sodium", x = as.Date("1961-10-05"), y = 45, hjust = 0)+
+  annotate("text", label = "Magnesium", x = as.Date("1961-10-05"), y = 20, hjust = 0)
+
+
+geom_smooth(aes(x = water.year, y= Ca), method = "lm", color = "red", se = FALSE)
+```
+
+#Graph Page 8
+
+```{r}
+
+
+bothws62 <- filter(bothws6, solute == "SO4")
+shape <- c("Stream Water" = 16, "Precipitation" = 1)
+ggplot(data = bothws62) +
+   geom_smooth(aes(x= water.year, y= concentration), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= concentration), color = "blue")+
+  geom_point(aes(x= water.year, y= concentration, shape = "Stream Water"), color = "blue", size = 2)+
+  geom_smooth(aes(x= water.year, y= ueq_weighted_average), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= ueq_weighted_average), color = "blue")+
+  geom_point(aes(x= water.year, y= ueq_weighted_average, shape = "Precipitation"),color = "blue", size = 2)+
+  scale_shape_manual(name="Flow",values=shape) + 
+  ggtitle("W6 Sulfate")
+  
+
+```
+
+
+
+#Graph Page 9
+
+```{r}
+
+bothws63 <- filter(bothws6, solute == "NO3")
+shape <- c("Stream Water" = 16, "Precipitation" = 1)
+ggplot(data = bothws63) +
+   geom_smooth(aes(x= water.year, y= concentration), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= concentration), color = "blue")+
+  geom_point(aes(x= water.year, y= concentration, shape = "Stream Water"), color = "blue", size = 2)+
+  geom_smooth(aes(x= water.year, y= ueq_weighted_average), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= ueq_weighted_average), color = "blue")+
+  geom_point(aes(x= water.year, y= ueq_weighted_average, shape = "Precipitation"),color = "blue", size = 2)+
+  scale_shape_manual(name="Flow",values=shape) + 
+  ggtitle("W6 Nitrate")
+  
+```
+
+#Graph Page 10
+
+```{r}
+
+
+bothws64 <- filter(bothws6, solute == "pH")
+str(bothws64)
+shape <- c("Stream Water" = 16, "Precipitation" = 1)
+ggplot(data = bothws64) +
+   geom_smooth(aes(x= water.year, y= concentration), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= concentration), color = "blue")+
+  geom_point(aes(x= water.year, y= concentration, shape = "Stream Water"), color = "blue", size = 2)+
+  geom_smooth(aes(x= water.year, y= ueq_weighted_average), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= ueq_weighted_average), color = "blue")+
+  geom_point(aes(x= water.year, y= ueq_weighted_average, shape = "Precipitation"),color = "blue", size = 2)+
+  scale_shape_manual(name="Flow",values=shape) + 
+  ggtitle("W6 Hydrogen")
+```
+
+
+#Graph Page 11
+
+```{r}
+
+
+bothws65 <- filter(bothws6, solute == "H")
+
+shape <- c("Stream Water" = 16, "Precipitation" = 1)
+ggplot(data = bothws65) +
+   geom_smooth(aes(x= water.year, y= concentration), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= concentration), color = "blue")+
+  geom_point(aes(x= water.year, y= concentration, shape = "Stream Water"), color = "blue", size = 2)+
+  geom_smooth(aes(x= water.year, y= ueq_weighted_average), se= FALSE, method = "lm", color = "red")+ 
+  geom_line(aes(x= water.year, y= ueq_weighted_average), color = "blue")+
+  geom_point(aes(x= water.year, y= ueq_weighted_average, shape = "Precipitation"),color = "blue", size = 2)+
+  scale_shape_manual(name="Flow",values=shape) + 
+  ggtitle("W6 Hydrogen")
+```
