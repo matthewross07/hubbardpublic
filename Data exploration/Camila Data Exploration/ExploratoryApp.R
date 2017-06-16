@@ -13,6 +13,7 @@ library(devtools)
 
 #DATA
 
+
 imported_data <- readRDS("precip_stream_data_long.rds")
 
 my_theme <- theme_fivethirtyeight() + 

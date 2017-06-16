@@ -1,0 +1,22 @@
+---
+title: "To do"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## General features
+- [ ] colors
+
+## Features to add to time graph
+- [ ] add water_mm_pm to the background of the graphs. 
+- [ ] exclude view 2 if it is the same as view 1. 
+- [ ] rearrange boxes for selecting variables (next to axis)
+- [ ] change precip - flow graph
+- [ ] solve what to do with "for precip" graph
+
+
+## Features to add to chemical graph
+- [ ] time selection

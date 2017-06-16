@@ -123,6 +123,17 @@ gather_source <- function(df){
   assign(deparse(substitute(df)), x, envir=.GlobalEnv)
 }
 
+
+#Function that filters by watershed and then finds the difference in each variable between Q and P (P-Q). 
+
+get_difference<- function(df, wsfilter){
+df %>% 
+  filter(ws == wsfilter)%>% 
+  group_by(ws, water_year, water_date, solute) %>%
+  arrange(source) %>%
+  summarise_each(funs(diff), concentration_mg, concentration_ueq,concentration_umol,flux,mg_weighted_average,umol_weighted_average, ueq_weighted_average,flux_sum)}
+
+
 ```
 
 
@@ -265,7 +276,7 @@ precip_stream_data %<>% group_by(ws, water_year, source, solute) %>%
   mutate(mg_weighted_average = weighted.mean(concentration_mg, water_mm_pm)) %>%
   mutate(umol_weighted_average = weighted.mean(concentration_umol, water_mm_pm)) %>%
   mutate(ueq_weighted_average = weighted.mean(concentration_ueq, water_mm_pm)) %>%
-  mutate(flux_weighted_average = weighted.mean(flux, water_mm_pm))
+  mutate(flux_sum = sum(flux))
 
 precip_stream_data$ws <- as.factor(precip_stream_data$ws)
 
@@ -297,9 +308,34 @@ values <- colnames(df[, !(names(df) %in% fixed)])
 
 precip_stream_data_wide <- data.table::dcast(data.table::setDT(df), ws + date + water_date + water_year + source + water_mm_pm ~ solute, value.var = values)
 
+precip_stream_data_wide$ws <- as.factor(precip_stream_data_wide$ws)
+precip_stream_data_wide$source <- as.factor(precip_stream_data_wide$source)
+
 precip_stream_data_wide %>% 
   saveRDS(file = "precip_stream_data_wide.rds")
 
+
+```
+
+
+#Differences df
+
+```{r}
+
+diff_ws1 <- get_difference(precip_stream_data, "1")
+diff_ws2 <- get_difference(precip_stream_data, "2")
+diff_ws3 <- get_difference(precip_stream_data, "3")
+diff_ws4 <- get_difference(precip_stream_data, "4")
+diff_ws5 <- get_difference(precip_stream_data, "5")
+diff_ws6 <- get_difference(precip_stream_data, "6")
+diff_ws7 <- get_difference(precip_stream_data, "7")
+diff_ws8 <- get_difference(precip_stream_data, "8")
+diff_ws9 <- get_difference(precip_stream_data, "9")
+
+precip_stream_diff_data_long <- do.call("rbind", list(diff_ws1, diff_ws2, diff_ws3, diff_ws4, diff_ws5, diff_ws6, diff_ws7, diff_ws8, diff_ws9))
+
+precip_stream_diff_data_long %>% 
+  saveRDS(file = "precip_stream_diff_data_long.rds")
 
 ```
 

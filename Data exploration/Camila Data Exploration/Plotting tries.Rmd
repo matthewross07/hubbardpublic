@@ -23,6 +23,16 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 
 ```{r}
+#TRYING DIFFERNCE PLTOS
+
+data_test <- readRDS("precip_stream_data_long.rds")
+data_test %>% 
+  group_by(water_date, source) %>% 
+  summarise(diff())
+```
+
+
+```{r}
 
 library(animation)
 library(gganimate)
