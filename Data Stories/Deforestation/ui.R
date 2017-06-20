@@ -7,6 +7,7 @@ library(tidyr)
 library(dplyr)
 library(shiny)
 library(plotly)
+library(ggiraph)
 
 
 shinyUI(fluidPage(
@@ -46,6 +47,8 @@ shinyUI(fluidPage(
                              max = as.Date("2014-01-01"),
                              value = c(as.Date("1965-01-01"), as.Date("1971-01-01")))),
                mainPanel(plotlyOutput("s.plot"),
+                         p("*The black horizontal line on the graph represents the date of 
+                           the deforestation of Watershed 2."),
                          h4("Consequences of Deforestation"),
                          p("Deforestation, the removal of forest trees,
                            is harmful to the environment for a number of 
@@ -138,6 +141,8 @@ shinyUI(fluidPage(
                              value = c(as.Date("1965-01-01"), as.Date("1971-01-01")))),
                
                mainPanel(plotlyOutput("d.plot"),
+                         p("*The black horizontal line on the graph represents the date of 
+                           the deforestation of Watershed 2."),
                          h4("Consequences of Deforestation"),
                          p("Deforestation, the removal of forest trees,
                            is harmful to the environment for a number of 

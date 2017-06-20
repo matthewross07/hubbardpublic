@@ -9,6 +9,7 @@ library(shiny)
 library(plotly)
 library(utils)
 library(ggiraph)
+library(grid)
 
 #read in the data
 precip_dis <- readRDS("precip_stream_data.rds")
@@ -150,13 +151,15 @@ format2 <- function(df, unit, ion, date.scale){
 #Function to plot the formatted data frame in ggplot2
 plot.formatted.df <- function(df, timescale, date.input, y.lab, title.lab, addprecip){
   m <- max(df$value, na.rm = TRUE)
+  v.line <- data.frame(Event = "WS2 Cutting", vals = -1675)
   if (addprecip == "precip"){
     p <- ggplot(df,aes(x= get(timescale),y=value, color=Source, label=date)) +
       geom_line() +
       geom_point() +
-      geom_vline(xintercept = -1675, color = "black") +
-      annotate("text", label = "WS2\n Cutting", 
-               x = as.Date("1966-01-01"), y = 0.8*m) +
+      geom_vline(data = v.line,
+                 aes(xintercept = vals),
+                 linetype = 1,
+                 show.legend = F) +
       coord_cartesian(xlim = c(as.Date(date.input[1]), 
                                as.Date(date.input[2])))+
       labs(x = "Date (In Water Years)", 
@@ -167,9 +170,10 @@ plot.formatted.df <- function(df, timescale, date.input, y.lab, title.lab, addpr
     p <- ggplot(df,aes(x= get(timescale),y=value,label=date)) +
       geom_line(color = "red") +
       geom_point(color = "blue") +
-      geom_vline(xintercept = -1675, color = "black") +
-      annotate("text", label = "WS2\n Cutting", 
-               x = as.Date("1966-01-01"), y = 0.8*m) +
+      geom_vline(data = v.line,
+                 aes(xintercept = vals),
+                 linetype = 1,
+                 show.legend = F) +
       coord_cartesian(xlim = c(as.Date(date.input[1]), 
                                as.Date(date.input[2])))+
       labs(x = "Date (In Water Years)", 
@@ -321,5 +325,5 @@ shinyServer(function(input, output) {
     
     
   })
-  
+  options(warn = -1)
 })
